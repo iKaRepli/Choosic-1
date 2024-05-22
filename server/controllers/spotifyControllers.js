@@ -1,5 +1,6 @@
 import mysql from 'mysql2/promise';
 import { getTokenByRoom } from './userControllers.js';
+import { token } from 'morgan';
 
 const connection = await mysql.createConnection({
     host: 'localhost',
@@ -68,7 +69,6 @@ export function callbackSpotify(req, res) {
             type: "track",
             limit: "10"
         })
-
         const tokens = await getTokenByRoom({ body: {roomCode} });
 
         const token = tokens.token
@@ -90,3 +90,27 @@ export function callbackSpotify(req, res) {
         const data = await result.json()
         return data;
     }
+    export async function playSong(roomCode, uri) {
+        const tokens = await getTokenByRoom({ body: {roomCode} });
+        const token = tokens.token;
+        const url = "https://api.spotify.com/v1/me/player/play";
+        const headers = {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        };
+        const body = {
+          uris: [uri]
+        };
+      
+        const result = await fetch(url, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify(body)
+        });
+      
+        if (!result.ok) {
+          console.log("Error al reproducir la canción", result);
+        } else {
+          console.log("Reproduciendo canción");
+        }
+      }

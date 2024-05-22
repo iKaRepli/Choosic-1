@@ -26,8 +26,8 @@ export default function Room () {
       console.log('conectado', userId)
     })
 
-    socket.on('songAdded', (data) => {
-      updatePlaylist(data.curretPlaylist)
+    socket.on('updateCurrentPlaylist', (data) => {
+      obtainSongs()
     })
 
     socket.on('resultados-busqueda', (data) => {
@@ -75,9 +75,10 @@ export default function Room () {
       console.log(e)
     }
   }
-
-  obtainSongs()
   
+const handleProbar = () => {
+  socket.emit("playCurrentSong",{roomCode : codigoSala})
+}
 
   return (
 		<div className='bg-gradient-to-r from-emerald-950 to-green-700'>
@@ -89,6 +90,7 @@ export default function Room () {
 					<div className='bg-amber-950 hover:bg-amber-900 text-white font-bold py-2 px-4 rounded m-4 mx-auto'>
 							Codigo de sala: {codigoSala}
 					</div>
+          <button className='bg-white' onClick={handleProbar}>HACER CLICK</button>
 			</div>
 			<div className="flex flex-row items-center justify-center h-screen">
 					<div className='container '>

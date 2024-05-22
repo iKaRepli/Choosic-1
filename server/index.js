@@ -7,7 +7,7 @@ import cors from 'cors'
 import querystring from 'querystring';
 import { createRoom, joinRoom, getRoomByName, putSongOnRoom, getSongsByCode } from './controllers/roomController.js'
 import { createUser, getUserById, getUserByName} from './controllers/userControllers.js';
-import { callbackSpotify, searchSongs } from './controllers/spotifyControllers.js'
+import { callbackSpotify, searchSongs, playSong } from './controllers/spotifyControllers.js'
 
 
 
@@ -25,6 +25,51 @@ const io = new SocketServer(server, {
   }
 })
 
+
+const timers = {}
+
+const  startSongPlayback = async (roomCode) =>{
+  const currentSong = await obtainCurrentSong(roomCode)
+
+  if(currentSong.code === 404) return;
+
+  playSong(roomCode,currentSong.uri)
+
+  const songDuration = currentSong.duracion
+
+  
+
+}
+
+const nextSong = () => {
+
+}
+
+
+async function obtainCurrentSong (codigoSala) {
+  const uri = "http://localhost:3003/api"  
+  var song = {code: 404}
+  try {
+      const response = await fetch(`${uri}/songsByCode/${codigoSala}`)
+
+      if (response.ok) {
+        const data = await response.json()
+        data.forEach(cancion => {
+          if (cancion.currentSong === 1) {
+            song = cancion
+          } 
+        })
+      } else {
+        console.error('Error al agregar la canción')
+      }
+    } catch (e) {
+      console.log(e)
+    }
+
+    return song;
+  }
+
+
 io.on('connection', socket => {
   console.log("Usuario conectado al socket!" + socket.id)
 
@@ -41,11 +86,13 @@ io.on('connection', socket => {
 
   })
 
-  socket.on('songAdded', ( { roomID, curretPlaylist }) => {
-    console.log(cancion)
-    io.to(roomID).emit('updatePlaylist', { curretPlaylist })
+  socket.on('playCurrentSong', ({roomCode}) => {
+    startSongPlayback(roomCode)
   })
 
+  socket.on('songAdded', (roomID) => {
+    io.to(roomID).emit('updateCurrentPlaylist')
+  })
 
   socket.on('searchSong',async(data) => {
     console.log(data)
